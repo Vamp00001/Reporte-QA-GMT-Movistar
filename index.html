@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ANÁLISIS QA GMT MOVISTAR</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -10,9 +11,27 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
         body { font-family: 'Inter', sans-serif; font-style: italic; background-color: #f1f5f9; }
         .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        /* Estilos del Login */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #001935; z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .login-box { background: white; padding: 2.5rem; border-radius: 1.5rem; width: 90%; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body class="pb-10">
+
+    <div id="loginOverlay">
+        <div class="login-box shadow-2xl">
+            <h2 class="text-2xl font-black text-[#001935] mb-2 italic uppercase">PLATAFORMA <span class="text-[#019DF4]">GMT</span></h2>
+            <p class="text-gray-400 text-[10px] font-bold uppercase mb-6 tracking-widest">Acceso restringido</p>
+            <input type="text" id="userInput" placeholder="Usuario" class="w-full p-3 mb-4 border-2 border-gray-100 rounded-xl outline-none focus:border-[#019DF4] font-bold text-sm">
+            <input type="password" id="passInput" placeholder="Contraseña" class="w-full p-3 mb-6 border-2 border-gray-100 rounded-xl outline-none focus:border-[#019DF4] font-bold text-sm">
+            <button onclick="validarAcceso()" class="w-full bg-[#001935] text-white p-3 rounded-xl font-black hover:bg-[#019DF4] transition-all transform active:scale-95 uppercase italic">Entrar al Sistema</button>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 font-black hidden uppercase">Credenciales incorrectas</p>
+        </div>
+    </div>
 
     <nav class="bg-[#001935] p-6 border-b-4 border-[#019DF4] sticky top-0 z-50">
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -20,7 +39,7 @@
             <div class="flex flex-wrap gap-2">
                 <select id="mSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
                 <select id="wSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
-                <input type="file" id="csvFileInput" accept=".csv" class="text-[10px] text-white bg-white/10 p-2 rounded-lg border border-white/20">
+                <button onclick="logout()" class="text-[10px] text-white bg-red-600/20 hover:bg-red-600 p-2 rounded-lg font-bold transition-colors">CERRAR SESIÓN</button>
             </div>
         </div>
     </nav>
@@ -49,41 +68,75 @@
 
     <script>
         Chart.register(ChartDataLabels);
+        
+        // CONFIGURACIÓN DE ACCESO Y ARCHIVO
+        const USER_OK = "admin";
+        const PASS_OK = "movi2026";
+        // CAMBIA "TU_USUARIO_AQUÍ" POR TU NOMBRE DE USUARIO REAL DE GITHUB
+        const CSV_URL = "https://raw.githubusercontent.com/vamp00001/Reporte-QA-GMT-Movistar/main/movi_2.csv";
+
         let gData = []; let charts = {};
         const catNames = ["Apertura","Profesionalismo","Tono","Lenguaje","Contactación","Habilidades","Resolución","Empatía","Apreciación","Información","Procedimientos","Sistemas","Cierre"];
 
-        document.getElementById('csvFileInput').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const lines = ev.target.result.split(/\r?\n/).filter(l => l.includes(','));
-                gData = lines.slice(1).map(line => {
-                    const p = line.split(',').map(c => c.trim().replace(/"/g, ''));
-                    
-                    // CORRECCIÓN: Detectar errores buscando en las columnas 7 a 19
-                    let errArray = [];
-                    for(let i=6; i<=18; i++) {
-                        let val = (p[i] || "").toUpperCase();
-                        errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
-                    }
+        // Verificar sesión activa al cargar
+        window.onload = () => {
+            if(localStorage.getItem('gmt_auth') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                cargarDatosAutomaticos();
+            }
+        };
 
-                    let hasCrit = errArray.some(v => v === 1);
-                    let notaFinal = parseFloat(p[1]);
-                    
-                    // Si el CSV dice 0 pero no hay errores, mantenemos el 0. 
-                    // Si hay errores críticos, la nota debería ser baja/cero según tu lógica.
-                    
-                    return {
-                        mes: p[0], nota: isNaN(notaFinal) ? 0 : notaFinal, 
-                        eje: p[2], sup: p[3], camp: p[4], sem: p[5],
-                        crit: hasCrit ? 1 : 0, errs: errArray, ana: p[19] || "S/A"
-                    };
+        function validarAcceso() {
+            const u = document.getElementById('userInput').value;
+            const p = document.getElementById('passInput').value;
+            if(u === USER_OK && p === PASS_OK) {
+                localStorage.setItem('gmt_auth', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
+                cargarDatosAutomaticos();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('gmt_auth');
+            location.reload();
+        }
+
+        function cargarDatosAutomaticos() {
+            fetch(CSV_URL)
+                .then(res => {
+                    if(!res.ok) throw new Error("Error al cargar");
+                    return res.text();
+                })
+                .then(csvText => {
+                    const lines = csvText.split(/\r?\n/).filter(l => l.includes(','));
+                    gData = lines.slice(1).map(line => {
+                        const p = line.split(',').map(c => c.trim().replace(/"/g, ''));
+                        let errArray = [];
+                        for(let i=6; i<=18; i++) {
+                            let val = (p[i] || "").toUpperCase();
+                            errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
+                        }
+                        let hasCrit = errArray.some(v => v === 1);
+                        let notaFinal = parseFloat(p[1]);
+                        return {
+                            mes: p[0], nota: isNaN(notaFinal) ? 0 : notaFinal, 
+                            eje: p[2], sup: p[3], camp: p[4], sem: p[5],
+                            crit: hasCrit ? 1 : 0, errs: errArray, ana: p[19] || "S/A"
+                        };
+                    });
+                    setup(); 
+                    update('ALL', 'ALL');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                })
+                .catch(err => {
+                    alert("Error crítico: No se encontró el archivo movi_2.csv en GitHub.");
+                    console.error(err);
                 });
-                setup(); update('ALL', 'ALL');
-                document.getElementById('mainContent').classList.remove('hidden');
-            };
-            reader.readAsText(e.target.files[0], 'ISO-8859-1');
-        });
+        }
 
+        // --- LÓGICA DE ACTUALIZACIÓN Y GRÁFICOS (TU CÓDIGO ORIGINAL) ---
         function setup() {
             const m = [...new Set(gData.map(d => d.mes))].sort();
             const w = [...new Set(gData.map(d => d.sem))].sort();
@@ -159,7 +212,6 @@
             });
         }
 
-        // Funciones de renderizado de gráficos iguales...
         function renderPie(id, m) {
             if(charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
@@ -183,3 +235,4 @@
     </script>
 </body>
 </html>
+
