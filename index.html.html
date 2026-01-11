@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ANÁLISIS QA GMT MOVISTAR</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
+        body { font-family: 'Inter', sans-serif; font-style: italic; background-color: #f1f5f9; }
+        .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body class="pb-10">
+
+    <nav class="bg-[#001935] p-6 border-b-4 border-[#019DF4] sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-black text-white uppercase italic tracking-tighter">ANÁLISIS QA <span class="text-[#019DF4]">GMT MOVISTAR</span></h1>
+            <div class="flex flex-wrap gap-2">
+                <select id="mSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
+                <select id="wSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
+                <input type="file" id="csvFileInput" accept=".csv" class="text-[10px] text-white bg-white/10 p-2 rounded-lg border border-white/20">
+            </div>
+        </div>
+    </nav>
+
+    <div id="mainContent" class="max-w-[1600px] mx-auto p-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div class="grid-card p-5 border-t-4 border-[#019DF4] text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Pospago</p><p id="k-pos" class="text-3xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-5 border-t-4 border-cyan-400 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Prepago</p><p id="k-pre" class="text-3xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-5 border-t-4 border-slate-800 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Total</p><p id="k-tot" class="text-3xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-5 border-t-4 border-blue-500 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Monitoreos</p><p id="k-cas" class="text-3xl font-black text-[#001935]">0</p></div>
+            <div class="grid-card p-5 border-t-4 border-red-500 text-center"><p class="text-[9px] font-black text-red-500 uppercase">Críticos</p><p id="k-cri" class="text-3xl font-black text-red-600">0</p></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="grid-card p-6 h-[400px] flex flex-col items-center"><h3 class="text-[10px] font-black uppercase mb-4">Nota por Campaña</h3><canvas id="chPie"></canvas></div>
+            <div class="grid-card p-6 h-[400px]"><h3 class="text-[10px] font-black uppercase mb-4">Monitoreos por Analista</h3><canvas id="chAna"></canvas></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="grid-card p-6 h-[450px]"><h3 class="text-[10px] font-black uppercase mb-4 text-red-600">Frecuencia de Errores Críticos</h3><canvas id="chErr"></canvas></div>
+            <div class="grid-card p-6 h-[450px]"><h3 class="text-[10px] font-black uppercase mb-4">Top 10 Ejecutivos Críticos</h3><canvas id="chTop"></canvas></div>
+        </div>
+
+        <div id="tablesContainer" class="space-y-8"></div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        let gData = []; let charts = {};
+        const catNames = ["Apertura","Profesionalismo","Tono","Lenguaje","Contactación","Habilidades","Resolución","Empatía","Apreciación","Información","Procedimientos","Sistemas","Cierre"];
+
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const lines = ev.target.result.split(/\r?\n/).filter(l => l.includes(','));
+                gData = lines.slice(1).map(line => {
+                    const p = line.split(',').map(c => c.trim().replace(/"/g, ''));
+                    
+                    // CORRECCIÓN: Detectar errores buscando en las columnas 7 a 19
+                    let errArray = [];
+                    for(let i=6; i<=18; i++) {
+                        let val = (p[i] || "").toUpperCase();
+                        errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
+                    }
+
+                    let hasCrit = errArray.some(v => v === 1);
+                    let notaFinal = parseFloat(p[1]);
+                    
+                    // Si el CSV dice 0 pero no hay errores, mantenemos el 0. 
+                    // Si hay errores críticos, la nota debería ser baja/cero según tu lógica.
+                    
+                    return {
+                        mes: p[0], nota: isNaN(notaFinal) ? 0 : notaFinal, 
+                        eje: p[2], sup: p[3], camp: p[4], sem: p[5],
+                        crit: hasCrit ? 1 : 0, errs: errArray, ana: p[19] || "S/A"
+                    };
+                });
+                setup(); update('ALL', 'ALL');
+                document.getElementById('mainContent').classList.remove('hidden');
+            };
+            reader.readAsText(e.target.files[0], 'ISO-8859-1');
+        });
+
+        function setup() {
+            const m = [...new Set(gData.map(d => d.mes))].sort();
+            const w = [...new Set(gData.map(d => d.sem))].sort();
+            const ms = document.getElementById('mSel'); const ws = document.getElementById('wSel');
+            ms.innerHTML = '<option value="ALL">MES ACUMULADO</option>';
+            ws.innerHTML = '<option value="ALL">SEMANA</option>';
+            m.forEach(x => ms.innerHTML += `<option value="${x}">${x}</option>`);
+            w.forEach(x => ws.innerHTML += `<option value="${x}">${x}</option>`);
+            ms.onchange = ws.onchange = () => update(ms.value, ws.value);
+        }
+
+        function update(fM, fW) {
+            let d = gData;
+            if(fM!=='ALL') d = d.filter(x => x.mes === fM);
+            if(fW!=='ALL') d = d.filter(x => x.sem === fW);
+
+            const pos = d.filter(x => (x.camp || "").toUpperCase().includes('POSPAGO'));
+            const pre = d.filter(x => (x.camp || "").toUpperCase().includes('PREPAGO'));
+            const avg = (a) => a.length ? (a.reduce((s,v)=>s+v.nota,0)/a.length).toFixed(1) : 0;
+
+            document.getElementById('k-pos').innerText = avg(pos) + "%";
+            document.getElementById('k-pre').innerText = avg(pre) + "%";
+            document.getElementById('k-tot').innerText = avg(d) + "%";
+            document.getElementById('k-cas').innerText = d.length;
+            document.getElementById('k-cri').innerText = d.reduce((s,v)=>s+v.crit,0);
+
+            renderPie('chPie', {'POSPAGO': avg(pos), 'PREPAGO': avg(pre)});
+            const anas = {}; d.forEach(x => anas[x.ana] = (anas[x.ana] || 0) + 1);
+            renderBar('chAna', anas, '#019DF4', false, 15, true); 
+
+            const eCounts = new Array(13).fill(0);
+            d.forEach(x => x.errs.forEach((v,i) => eCounts[i]+=v));
+            const eMap = {}; catNames.forEach((n,i) => eMap[n] = eCounts[i]);
+            renderBar('chErr', eMap, '#EF4444', true);
+
+            const ejesCri = {}; d.filter(x => x.crit>0).forEach(x => ejesCri[x.eje] = (ejesCri[x.eje] || 0) + 1);
+            renderBar('chTop', ejesCri, '#991B1B', true, 10);
+
+            const container = document.getElementById('tablesContainer');
+            container.innerHTML = ''; 
+            const campañas = [...new Set(d.map(x => x.camp))];
+
+            campañas.forEach(camp => {
+                const dataCamp = d.filter(x => x.camp === camp);
+                const ag = dataCamp.reduce((acc, curr) => {
+                    if (!acc[curr.eje]) {
+                        acc[curr.eje] = { ...curr, notas: [curr.nota], totalCrit: curr.crit, monitoreos: 1, listaErrores: new Set() };
+                    } else {
+                        acc[curr.eje].notas.push(curr.nota);
+                        acc[curr.eje].totalCrit += curr.crit;
+                        acc[curr.eje].monitoreos += 1;
+                    }
+                    curr.errs.forEach((val, idx) => { if(val === 1) acc[curr.eje].listaErrores.add(catNames[idx]); });
+                    return acc;
+                }, {});
+
+                const listaOrdenada = Object.values(ag).sort((a, b) => (b.notas.reduce((s,v)=>s+v,0)/b.notas.length) - (a.notas.reduce((s,v)=>s+v,0)/a.notas.length));
+
+                let html = `<div class="grid-card overflow-hidden"><div class="bg-[#001935] p-4 border-l-8 border-[#019DF4]"><h2 class="text-white font-black uppercase italic text-sm">CAMPAÑA: ${camp}</h2></div>
+                    <table class="w-full text-[11px] text-left"><thead class="bg-slate-50 text-slate-500 uppercase italic font-black border-b"><tr>
+                        <th class="p-4">Supervisor</th><th class="p-4">Ejecutivo</th><th class="p-4">Errores Detectados</th><th class="p-4 text-center">Cant.</th><th class="p-4 text-center">Nota</th><th class="p-4 text-center">Estado</th>
+                    </tr></thead><tbody class="divide-y divide-gray-100">`;
+
+                listaOrdenada.forEach(x => {
+                    const prom = (x.notas.reduce((s,v)=>s+v,0)/x.notas.length).toFixed(1);
+                    const erroresTexto = x.listaErrores.size > 0 ? Array.from(x.listaErrores).join(', ') : '<span class="text-gray-300 italic">Ninguno</span>';
+                    html += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold text-slate-500">${x.sup}</td><td class="p-4 uppercase font-black text-[#001935]">${x.eje}</td>
+                        <td class="p-4 text-red-600 font-bold max-w-[250px]">${erroresTexto}</td>
+                        <td class="p-4 text-center font-bold text-blue-600">${x.monitoreos}</td><td class="p-4 text-center font-black text-lg">${prom}%</td>
+                        <td class="p-4 text-center"><span class="px-3 py-1 rounded-full font-black ${x.totalCrit > 0?'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${x.totalCrit > 0?'CRITICO':'OK'}</span></td></tr>`;
+                });
+                container.innerHTML += html + `</tbody></table></div>`;
+            });
+        }
+
+        // Funciones de renderizado de gráficos iguales...
+        function renderPie(id, m) {
+            if(charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4']}]},
+                options: { maintainAspectRatio: false, layout: { padding: 45 }, plugins: { datalabels: { anchor:'center', align:'center', color: '#fff', font: { size: 16, weight: 'bold' }, formatter: v => v + "%" }, legend: { display: true, position: 'top' } } }
+            });
+        }
+
+        function renderBar(id, m, c, h, lim=15, dentro=false) {
+            if(charts[id]) charts[id].destroy();
+            const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 5}]},
+                options: { 
+                    indexAxis: h?'y':'x', maintainAspectRatio: false, layout: { padding: { top: 30, bottom: 50, left: 30, right: 35 } },
+                    plugins: { legend: {display:false}, datalabels: { anchor: dentro?'center':'end', align: dentro?'center':'end', color: dentro?'#FFFFFF':'#333', font:{size: dentro?22:11, weight:'bold'} } }, 
+                    scales: { x: { grid:{display:false}, ticks: { autoSkip: false, maxRotation: 0, minRotation: 0, padding: 12, font: { size: 10, weight: 'bold' } } }, y: { grid:{display:false} } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
