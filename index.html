@@ -3,63 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA QA GMT</title>
+    <title>REPORTES GMT</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
         body { font-family: 'Inter', sans-serif; font-style: italic; background-color: #f1f5f9; user-select: none; }
-        .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #001935; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; padding-right: 2rem !important; }
     </style>
 </head>
 <body class="pb-10">
 
     <div id="loginOverlay">
-        <div class="bg-white p-10 rounded-[2rem] shadow-2xl w-full max-w-sm text-center">
-            <div class="mb-6"><span class="text-4xl">🔐</span></div>
-            <h2 class="text-2xl font-black text-[#001935] mb-2 italic">PORTAL <span class="text-[#019DF4]">GMT</span></h2>
-            <p class="text-gray-400 text-[9px] font-bold uppercase mb-8 tracking-[0.2em]">Visualización de Datos</p>
-            <input type="text" id="userInput" placeholder="Usuario" class="w-full p-4 mb-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold">
-            <input type="password" id="passInput" placeholder="Contraseña" class="w-full p-4 mb-8 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold">
-            <button onclick="validarAcceso()" class="w-full bg-[#001935] text-white p-4 rounded-2xl font-black hover:bg-[#019DF4] transition-all uppercase italic">Acceder al Reporte</button>
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-black text-[#001935] mb-8 italic uppercase tracking-tighter">REPORTES <span class="text-[#019DF4]">GMT</span></h2>
+            <input type="text" id="userInput" placeholder="Usuario" class="w-full p-4 mb-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold italic text-sm">
+            <input type="password" id="passInput" placeholder="Contraseña" class="w-full p-4 mb-8 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold italic text-sm">
+            <button onclick="validarAcceso()" class="w-full bg-[#001935] text-white p-4 rounded-2xl font-black hover:bg-[#019DF4] transition-all uppercase italic tracking-widest">Entrar</button>
             <p id="loginError" class="text-red-500 text-[10px] mt-4 font-black hidden uppercase">Acceso Denegado</p>
         </div>
     </div>
 
-    <nav class="bg-[#001935] p-6 border-b-4 border-[#019DF4] sticky top-0 z-50">
-        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <h1 class="text-xl font-black text-white uppercase italic">REPORTES <span class="text-[#019DF4]">GMT</span></h1>
+    <nav class="bg-[#001935] p-4 border-b-4 border-[#019DF4] sticky top-0 z-50">
+        <div class="max-w-[1800px] mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-black text-white uppercase italic tracking-tighter">REPORTES <span class="text-[#019DF4]">GMT</span></h1>
             <div class="flex items-center gap-3">
-                <select id="mSel" class="p-2 rounded-xl font-bold text-[10px] outline-none border-none bg-white text-[#001935]"></select>
-                <select id="wSel" class="p-2 rounded-xl font-bold text-[10px] outline-none border-none bg-white text-[#001935]"></select>
+                <select id="mSel" class="p-2 px-4 rounded-xl font-black text-[10px] outline-none border-none bg-white text-[#001935] uppercase"></select>
+                <select id="wSel" class="p-2 px-4 rounded-xl font-black text-[10px] outline-none border-none bg-white text-[#001935] uppercase"></select>
                 
-                <label class="cursor-pointer bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">
-                    <span class="text-white text-[10px] font-bold px-2 uppercase">Actualizar Local</span>
+                <label class="cursor-pointer bg-white/10 hover:bg-[#019DF4] p-2 px-4 rounded-xl transition-all group">
+                    <span class="text-white text-[10px] font-black uppercase italic">Actualizar Local</span>
                     <input type="file" id="csvFileInput" accept=".csv" class="hidden">
                 </label>
                 
-                <button onclick="logout()" class="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-[10px] font-bold transition-all px-4">SALIR</button>
+                <button onclick="logout()" class="p-2 px-4 bg-red-600 text-white rounded-xl text-[10px] font-black transition-all hover:bg-red-700 uppercase italic">Salir</button>
             </div>
         </div>
     </nav>
 
-    <div id="mainContent" class="max-w-[1600px] mx-auto p-6 hidden">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <div class="grid-card p-6 border-t-4 border-[#019DF4] text-center"><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Pospago</p><p id="k-pos" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-6 border-t-4 border-cyan-400 text-center"><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Prepago</p><p id="k-pre" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-6 border-t-4 border-slate-800 text-center"><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Total</p><p id="k-tot" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-6 border-t-4 border-blue-500 text-center"><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Casos</p><p id="k-cas" class="text-3xl font-black text-[#001935]">0</p></div>
-            <div class="grid-card p-6 border-t-4 border-red-500 text-center"><p class="text-[9px] font-black text-red-500 uppercase mb-2">Críticos</p><p id="k-cri" class="text-3xl font-black text-red-600">0</p></div>
+    <div id="mainContent" class="max-w-[1800px] mx-auto p-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="grid-card p-6 text-center border-b-4 border-[#019DF4]"><p class="text-[10px] font-black text-gray-400 uppercase mb-1 italic">Nota Pospago</p><p id="k-pos" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 text-center border-b-4 border-cyan-400"><p class="text-[10px] font-black text-gray-400 uppercase mb-1 italic">Nota Prepago</p><p id="k-pre" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 text-center border-b-4 border-slate-800"><p class="text-[10px] font-black text-gray-400 uppercase mb-1 italic">Nota Total</p><p id="k-tot" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 text-center border-b-4 border-blue-600"><p class="text-[10px] font-black text-gray-400 uppercase mb-1 italic">Monitoreos</p><p id="k-cas" class="text-4xl font-black text-[#001935]">0</p></div>
+            <div class="grid-card p-6 text-center border-b-4 border-red-600"><p class="text-[10px] font-black text-red-600 uppercase mb-1 italic tracking-widest text-xs">Críticos</p><p id="k-cri" class="text-4xl font-black text-red-600">0</p></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="grid-card p-6 h-[400px] flex flex-col items-center"><canvas id="chPie"></canvas></div>
-            <div class="grid-card p-6 h-[400px]"><canvas id="chAna"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid-card p-8 h-[450px] flex flex-col items-center"><canvas id="chPie"></canvas></div>
+            <div class="grid-card p-8 h-[450px]"><canvas id="chAna"></canvas></div>
         </div>
 
-        <div id="tablesContainer" class="space-y-8"></div>
+        <div id="tablesContainer" class="space-y-10"></div>
     </div>
 
     <script>
@@ -72,18 +71,17 @@
 
         function validarAcceso() {
             if(document.getElementById('userInput').value === USER_OK && document.getElementById('passInput').value === PASS_OK) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                cargarDatosServer();
+                document.getElementById('loginOverlay').classList.add('hidden');
+                cargarDesdeGitHub();
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
             }
         }
 
-        function cargarDatosServer() {
-            fetch(CSV_URL).then(r => r.text()).then(d => procesar(d)).catch(() => alert("Error al conectar con la base de datos."));
+        function cargarDesdeGitHub() {
+            fetch(CSV_URL).then(r => r.text()).then(d => procesar(d)).catch(() => alert("Error al cargar base de datos de GitHub."));
         }
 
-        // Carga manual sin opción de descarga
         document.getElementById('csvFileInput').addEventListener('change', (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => procesar(ev.target.result);
@@ -139,17 +137,28 @@
             const container = document.getElementById('tablesContainer'); container.innerHTML = '';
             [...new Set(d.map(x => x.camp))].forEach(camp => {
                 const dataCamp = d.filter(x => x.camp === camp);
-                let html = `<div class="grid-card overflow-hidden"><div class="bg-[#001935] p-4 border-l-8 border-[#019DF4]"><h2 class="text-white font-black uppercase italic text-xs">${camp}</h2></div><table class="w-full text-[10px] text-left">`;
-                // ... (resto de la tabla similar a la anterior) ...
-                container.innerHTML += html + `</table></div>`;
+                let html = `<div class="grid-card overflow-hidden shadow-xl"><div class="bg-[#001935] p-5 border-l-[12px] border-[#019DF4]"><h2 class="text-white font-black uppercase italic text-sm tracking-widest">${camp}</h2></div><table class="w-full text-[11px] text-left"><thead class="bg-gray-50 border-b italic font-black text-gray-400 uppercase"><tr><th class="p-4">Supervisor</th><th class="p-4">Ejecutivo</th><th class="p-4 text-center">Nota</th><th class="p-4 text-center">Estado</th></tr></thead><tbody class="divide-y divide-gray-100">`;
+                
+                // Agrupar por ejecutivo para la tabla
+                const ag = dataCamp.reduce((acc, curr) => {
+                    if (!acc[curr.eje]) acc[curr.eje] = { ...curr, notas: [curr.nota], totalCrit: curr.crit };
+                    else { acc[curr.eje].notas.push(curr.nota); acc[curr.eje].totalCrit += curr.crit; }
+                    return acc;
+                }, {});
+
+                Object.values(ag).forEach(x => {
+                    const prom = (x.notas.reduce((s,v)=>s+v,0)/x.notas.length).toFixed(1);
+                    html += `<tr><td class="p-4 font-bold text-gray-500">${x.sup}</td><td class="p-4 font-black text-[#001935] uppercase">${x.eje}</td><td class="p-4 text-center font-black text-lg">${prom}%</td><td class="p-4 text-center"><span class="px-3 py-1 rounded-full font-black ${x.totalCrit > 0?'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${x.totalCrit > 0?'CRITICO':'OK'}</span></td></tr>`;
+                });
+                container.innerHTML += html + `</tbody></table></div>`;
             });
         }
 
         function renderPie(id, m) {
             if(charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4']}]},
-                options: { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: v => v + "%" } } }
+                type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4'], borderWidth: 5, borderColor: '#fff'}]},
+                options: { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'black', size: 16, style: 'italic' }, formatter: v => v + "%" }, legend: { position: 'top', labels: { font: { weight: 'bold', family: 'Inter'} } } } }
             });
         }
 
@@ -157,8 +166,8 @@
             if(charts[id]) charts[id].destroy();
             const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, 10);
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c}]},
-                options: { maintainAspectRatio: false, plugins: { legend: {display:false} } }
+                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 10}]},
+                options: { maintainAspectRatio: false, plugins: { legend: {display:false}, datalabels: { anchor:'end', align:'top', font:{weight:'bold'} } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } } } }
             });
         }
 
