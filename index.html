@@ -202,22 +202,49 @@
             if(charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
                 type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4'], borderWidth: 5, borderColor: '#fff'}]},
-                options: { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'black', size: 14 }, formatter: v => v + "%" }, legend: { position: 'top', labels: { font: { weight: 'bold' } } } } }
+                options: { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'black', size: 20 }, formatter: v => v + "%" }, legend: { position: 'top', labels: { font: { weight: 'bold' } } } } }
             });
         }
 
-        function renderBar(id, m, c, h, lim=15, dentro=false) {
-            if(charts[id]) charts[id].destroy();
-            const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
-            charts[id] = new Chart(document.getElementById(id), {
-                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 8}]},
-                options: { 
-                    indexAxis: h?'y':'x', maintainAspectRatio: false, 
-                    plugins: { legend: {display:false}, datalabels: { anchor: dentro?'center':'end', align: dentro?'center':'top', color: dentro?'#fff':'#444', font:{weight:'black', size:10} } },
-                    scales: { y: { grid:{display:false}, ticks:{font:{weight:'bold', size:9}} }, x: { grid:{display:false}, ticks:{font:{weight:'bold', size:9}} } }
-                }
-            });
+        function renderBar(id, m, c, h, lim=20, dentro=false) {
+    if(charts[id]) charts[id].destroy();
+    const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
+    charts[id] = new Chart(document.getElementById(id), {
+        type: 'bar', 
+        data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 8}]},
+        options: { 
+            indexAxis: h?'y':'x', 
+            maintainAspectRatio: false, 
+            plugins: { 
+                legend: {display:false}, 
+                datalabels: { 
+                    // POSICIÓN: 'end' coloca el número al final de la barra
+                    anchor: 'end', 
+                    // ALINEACIÓN: 'right' para barras horizontales, 'top' para verticales
+                    align: h ? 'right' : 'top', 
+                    color: '#444', 
+                    // TAMAÑO: Cambia el valor de 'size' para hacer los números más grandes
+                    font: {
+                        weight: 'black', 
+                        size: 16 // <-- Aumenta este número (ej. 18 o 20)
+                    },
+                    // ESPACIADO: Añade un offset para que no pegue a la barra
+                    offset: 4 
+                } 
+            },
+            scales: { 
+                y: { grid:{display:false}, ticks:{font:{weight:'bold', size:11}} }, 
+                x: { 
+                    grid:{display:false}, 
+                    // IMPORTANTE: Añade 'suggestedMax' para dar aire al final de la gráfica
+                    suggestedMax: Math.max(...Object.values(m)) * 1.2,
+                    ticks:{font:{weight:'bold', size:11}} 
+                } 
+            }
         }
+    });
+}
     </script>
 </body>
 </html>
+
