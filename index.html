@@ -9,76 +9,73 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@1,900&display=swap');
-        body { font-family: 'Inter', sans-serif; font-style: italic; background-color: #f1f5f9; }
-        .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        
-        /* Estilos del Login */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #001935; z-index: 9999; display: flex; align-items: center; justify-content: center;
-        }
-        .login-box { background: white; padding: 2.5rem; border-radius: 1.5rem; width: 90%; max-width: 400px; text-align: center; }
+        body { font-family: 'Inter', sans-serif; font-style: italic; background-color: #f1f5f9; user-select: none; }
+        .grid-card { border-radius: 1.5rem; background: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.2s; }
+        .grid-card:hover { transform: translateY(-2px); }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #001935; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; padding-right: 2.5rem !important; }
     </style>
 </head>
 <body class="pb-10">
 
     <div id="loginOverlay">
-        <div class="login-box shadow-2xl">
-            <h2 class="text-2xl font-black text-[#001935] mb-2 italic uppercase">PLATAFORMA <span class="text-[#019DF4]">GMT</span></h2>
-            <p class="text-gray-400 text-[10px] font-bold uppercase mb-6 tracking-widest">Acceso restringido</p>
-            <input type="text" id="userInput" placeholder="Usuario" class="w-full p-3 mb-4 border-2 border-gray-100 rounded-xl outline-none focus:border-[#019DF4] font-bold text-sm">
-            <input type="password" id="passInput" placeholder="Contraseña" class="w-full p-3 mb-6 border-2 border-gray-100 rounded-xl outline-none focus:border-[#019DF4] font-bold text-sm">
-            <button onclick="validarAcceso()" class="w-full bg-[#001935] text-white p-3 rounded-xl font-black hover:bg-[#019DF4] transition-all transform active:scale-95 uppercase italic">Entrar al Sistema</button>
-            <p id="loginError" class="text-red-500 text-[10px] mt-4 font-black hidden uppercase">Credenciales incorrectas</p>
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-2xl font-black text-[#001935] mb-8 italic uppercase tracking-tighter">PLATAFORMA <span class="text-[#019DF4]">GMT</span></h2>
+            <input type="text" id="userInput" placeholder="Usuario" class="w-full p-4 mb-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold italic text-sm">
+            <input type="password" id="passInput" placeholder="Contraseña" class="w-full p-4 mb-8 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[#019DF4] font-bold italic text-sm">
+            <button onclick="validarAcceso()" class="w-full bg-[#001935] text-white p-4 rounded-2xl font-black hover:bg-[#019DF4] transition-all uppercase italic tracking-widest">Entrar</button>
+            <p id="loginError" class="text-red-500 text-[10px] mt-4 font-black hidden uppercase">Acceso Denegado</p>
         </div>
     </div>
 
     <nav class="bg-[#001935] p-6 border-b-4 border-[#019DF4] sticky top-0 z-50">
-        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-[1800px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <h1 class="text-2xl font-black text-white uppercase italic tracking-tighter">ANÁLISIS QA <span class="text-[#019DF4]">GMT MOVISTAR</span></h1>
             <div class="flex flex-wrap gap-2">
-                <select id="mSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
-                <select id="wSel" class="p-2 rounded-lg font-bold text-[10px] outline-none border-2 border-[#019DF4] bg-white"></select>
-                <button onclick="logout()" class="text-[10px] text-white bg-red-600/20 hover:bg-red-600 p-2 rounded-lg font-bold transition-colors">CERRAR SESIÓN</button>
+                <select id="mSel" class="p-2 px-4 rounded-xl font-black text-[10px] outline-none border-none bg-white text-[#001935] uppercase"></select>
+                <select id="wSel" class="p-2 px-4 rounded-xl font-black text-[10px] outline-none border-none bg-white text-[#001935] uppercase"></select>
+                <button onclick="logout()" class="p-2 px-6 bg-red-600 text-white rounded-xl text-[10px] font-black transition-all hover:bg-red-700 uppercase italic">Salir</button>
             </div>
         </div>
     </nav>
 
-    <div id="mainContent" class="max-w-[1600px] mx-auto p-6 hidden">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-            <div class="grid-card p-5 border-t-4 border-[#019DF4] text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Pospago</p><p id="k-pos" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-5 border-t-4 border-cyan-400 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Prepago</p><p id="k-pre" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-5 border-t-4 border-slate-800 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Nota Total</p><p id="k-tot" class="text-3xl font-black text-[#001935]">0%</p></div>
-            <div class="grid-card p-5 border-t-4 border-blue-500 text-center"><p class="text-[9px] font-black text-gray-400 uppercase">Monitoreos</p><p id="k-cas" class="text-3xl font-black text-[#001935]">0</p></div>
-            <div class="grid-card p-5 border-t-4 border-red-500 text-center"><p class="text-[9px] font-black text-red-500 uppercase">Críticos</p><p id="k-cri" class="text-3xl font-black text-red-600">0</p></div>
+    <div id="mainContent" class="max-w-[1800px] mx-auto p-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="grid-card p-6 border-t-4 border-[#019DF4] text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Nota Pospago</p><p id="k-pos" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 border-t-4 border-cyan-400 text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Nota Prepago</p><p id="k-pre" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 border-t-4 border-slate-800 text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Nota Total</p><p id="k-tot" class="text-4xl font-black text-[#001935]">0%</p></div>
+            <div class="grid-card p-6 border-t-4 border-blue-600 text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Monitoreos</p><p id="k-cas" class="text-4xl font-black text-[#001935]">0</p></div>
+            <div class="grid-card p-6 border-t-4 border-red-600 text-center"><p class="text-[10px] font-black text-red-600 uppercase mb-1">Críticos</p><p id="k-cri" class="text-4xl font-black text-red-600">0</p></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="grid-card p-6 h-[400px] flex flex-col items-center"><h3 class="text-[10px] font-black uppercase mb-4">Nota por Campaña</h3><canvas id="chPie"></canvas></div>
-            <div class="grid-card p-6 h-[400px]"><h3 class="text-[10px] font-black uppercase mb-4">Monitoreos por Analista</h3><canvas id="chAna"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid-card p-8 h-[450px] flex flex-col items-center"><h3 class="text-[11px] font-black uppercase mb-4 tracking-widest">Nota por Campaña</h3><canvas id="chPie"></canvas></div>
+            <div class="grid-card p-8 h-[450px]"><h3 class="text-[11px] font-black uppercase mb-4 tracking-widest">Monitoreos por Analista</h3><canvas id="chAna"></canvas></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="grid-card p-6 h-[450px]"><h3 class="text-[10px] font-black uppercase mb-4 text-red-600">Frecuencia de Errores Críticos</h3><canvas id="chErr"></canvas></div>
-            <div class="grid-card p-6 h-[450px]"><h3 class="text-[10px] font-black uppercase mb-4">Top 10 Ejecutivos Críticos</h3><canvas id="chTop"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid-card p-8 h-[500px]"><h3 class="text-[11px] font-black uppercase mb-4 text-red-600 tracking-widest">Críticos por Supervisor</h3><canvas id="chSupCri"></canvas></div>
+            <div class="grid-card p-8 h-[500px]"><h3 class="text-[11px] font-black uppercase mb-4 tracking-widest text-red-600">Top 10 Ejecutivos Críticos</h3><canvas id="chTop"></canvas></div>
         </div>
 
-        <div id="tablesContainer" class="space-y-8"></div>
+        <div class="grid-card p-8 h-[450px] mb-8">
+            <h3 class="text-[11px] font-black uppercase mb-4 tracking-widest">Frecuencia de Errores por Categoría</h3>
+            <canvas id="chErr"></canvas>
+        </div>
+
+        <div id="tablesContainer" class="space-y-10"></div>
     </div>
 
     <script>
         Chart.register(ChartDataLabels);
         
-        // CONFIGURACIÓN DE ACCESO Y ARCHIVO
         const USER_OK = "admin";
         const PASS_OK = "movi2026";
-        // CAMBIA "TU_USUARIO_AQUÍ" POR TU NOMBRE DE USUARIO REAL DE GITHUB
         const CSV_URL = "https://raw.githubusercontent.com/vamp00001/Reporte-QA-GMT-Movistar/main/movi_2.csv";
 
         let gData = []; let charts = {};
         const catNames = ["Apertura","Profesionalismo","Tono","Lenguaje","Contactación","Habilidades","Resolución","Empatía","Apreciación","Información","Procedimientos","Sistemas","Cierre"];
 
-        // Verificar sesión activa al cargar
         window.onload = () => {
             if(localStorage.getItem('gmt_auth') === 'true') {
                 document.getElementById('loginOverlay').style.display = 'none';
@@ -87,9 +84,7 @@
         };
 
         function validarAcceso() {
-            const u = document.getElementById('userInput').value;
-            const p = document.getElementById('passInput').value;
-            if(u === USER_OK && p === PASS_OK) {
+            if(document.getElementById('userInput').value === USER_OK && document.getElementById('passInput').value === PASS_OK) {
                 localStorage.setItem('gmt_auth', 'true');
                 document.getElementById('loginOverlay').style.display = 'none';
                 cargarDatosAutomaticos();
@@ -105,10 +100,7 @@
 
         function cargarDatosAutomaticos() {
             fetch(CSV_URL)
-                .then(res => {
-                    if(!res.ok) throw new Error("Error al cargar");
-                    return res.text();
-                })
+                .then(res => res.text())
                 .then(csvText => {
                     const lines = csvText.split(/\r?\n/).filter(l => l.includes(','));
                     gData = lines.slice(1).map(line => {
@@ -118,29 +110,23 @@
                             let val = (p[i] || "").toUpperCase();
                             errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
                         }
-                        let hasCrit = errArray.some(v => v === 1);
-                        let notaFinal = parseFloat(p[1]);
                         return {
-                            mes: p[0], nota: isNaN(notaFinal) ? 0 : notaFinal, 
-                            eje: p[2], sup: p[3], camp: p[4], sem: p[5],
-                            crit: hasCrit ? 1 : 0, errs: errArray, ana: p[19] || "S/A"
+                            mes: p[0], nota: parseFloat(p[1]) || 0, eje: p[2], sup: p[3], 
+                            camp: p[4], sem: p[5], crit: errArray.some(v => v === 1) ? 1 : 0, 
+                            errs: errArray, ana: p[19] || "S/A"
                         };
                     });
                     setup(); 
                     update('ALL', 'ALL');
                     document.getElementById('mainContent').classList.remove('hidden');
                 })
-                .catch(err => {
-                    alert("Error crítico: No se encontró el archivo movi_2.csv en GitHub.");
-                    console.error(err);
-                });
+                .catch(() => alert("Error al conectar con GitHub."));
         }
 
-        // --- LÓGICA DE ACTUALIZACIÓN Y GRÁFICOS (TU CÓDIGO ORIGINAL) ---
         function setup() {
             const m = [...new Set(gData.map(d => d.mes))].sort();
             const w = [...new Set(gData.map(d => d.sem))].sort();
-            const ms = document.getElementById('mSel'); const ws = document.getElementById('wSel');
+            const ms = document.getElementById('mSel'), ws = document.getElementById('wSel');
             ms.innerHTML = '<option value="ALL">MES ACUMULADO</option>';
             ws.innerHTML = '<option value="ALL">SEMANA</option>';
             m.forEach(x => ms.innerHTML += `<option value="${x}">${x}</option>`);
@@ -153,8 +139,8 @@
             if(fM!=='ALL') d = d.filter(x => x.mes === fM);
             if(fW!=='ALL') d = d.filter(x => x.sem === fW);
 
-            const pos = d.filter(x => (x.camp || "").toUpperCase().includes('POSPAGO'));
-            const pre = d.filter(x => (x.camp || "").toUpperCase().includes('PREPAGO'));
+            const pos = d.filter(x => x.camp.toUpperCase().includes('POSPAGO'));
+            const pre = d.filter(x => x.camp.toUpperCase().includes('PREPAGO'));
             const avg = (a) => a.length ? (a.reduce((s,v)=>s+v.nota,0)/a.length).toFixed(1) : 0;
 
             document.getElementById('k-pos').innerText = avg(pos) + "%";
@@ -164,17 +150,30 @@
             document.getElementById('k-cri').innerText = d.reduce((s,v)=>s+v.crit,0);
 
             renderPie('chPie', {'POSPAGO': avg(pos), 'PREPAGO': avg(pre)});
+            
+            // Analistas
             const anas = {}; d.forEach(x => anas[x.ana] = (anas[x.ana] || 0) + 1);
             renderBar('chAna', anas, '#019DF4', false, 15, true); 
 
+            // Críticos por Supervisor (Nuevo)
+            const supCri = {}; d.filter(x => x.crit > 0).forEach(x => supCri[x.sup] = (supCri[x.sup] || 0) + 1);
+            renderBar('chSupCri', supCri, '#991B1B', true, 10);
+
+            // Errores por Categoría
             const eCounts = new Array(13).fill(0);
             d.forEach(x => x.errs.forEach((v,i) => eCounts[i]+=v));
             const eMap = {}; catNames.forEach((n,i) => eMap[n] = eCounts[i]);
-            renderBar('chErr', eMap, '#EF4444', true);
+            renderBar('chErr', eMap, '#EF4444', false);
 
+            // Top Ejecutivos Críticos
             const ejesCri = {}; d.filter(x => x.crit>0).forEach(x => ejesCri[x.eje] = (ejesCri[x.eje] || 0) + 1);
-            renderBar('chTop', ejesCri, '#991B1B', true, 10);
+            renderBar('chTop', ejesCri, '#B91C1C', true, 10);
 
+            // Tablas
+            renderTables(d);
+        }
+
+        function renderTables(d) {
             const container = document.getElementById('tablesContainer');
             container.innerHTML = ''; 
             const campañas = [...new Set(d.map(x => x.camp))];
@@ -182,31 +181,18 @@
             campañas.forEach(camp => {
                 const dataCamp = d.filter(x => x.camp === camp);
                 const ag = dataCamp.reduce((acc, curr) => {
-                    if (!acc[curr.eje]) {
-                        acc[curr.eje] = { ...curr, notas: [curr.nota], totalCrit: curr.crit, monitoreos: 1, listaErrores: new Set() };
-                    } else {
-                        acc[curr.eje].notas.push(curr.nota);
-                        acc[curr.eje].totalCrit += curr.crit;
-                        acc[curr.eje].monitoreos += 1;
-                    }
-                    curr.errs.forEach((val, idx) => { if(val === 1) acc[curr.eje].listaErrores.add(catNames[idx]); });
+                    if (!acc[curr.eje]) acc[curr.eje] = { ...curr, notas: [curr.nota], totalCrit: curr.crit, moni: 1, errSet: new Set() };
+                    else { acc[curr.eje].notas.push(curr.nota); acc[curr.eje].totalCrit += curr.crit; acc[curr.eje].moni++; }
+                    curr.errs.forEach((v, i) => { if(v===1) acc[curr.eje].errSet.add(catNames[i]) });
                     return acc;
                 }, {});
 
-                const listaOrdenada = Object.values(ag).sort((a, b) => (b.notas.reduce((s,v)=>s+v,0)/b.notas.length) - (a.notas.reduce((s,v)=>s+v,0)/a.notas.length));
+                let html = `<div class="grid-card overflow-hidden shadow-xl"><div class="bg-[#001935] p-5 border-l-[12px] border-[#019DF4]"><h2 class="text-white font-black uppercase italic text-sm tracking-widest">${camp}</h2></div><table class="w-full text-[10px] text-left"><thead class="bg-gray-50 border-b italic font-black text-gray-400 uppercase"><tr><th class="p-4">Supervisor</th><th class="p-4">Ejecutivo</th><th class="p-4">Errores</th><th class="p-4 text-center">Nota</th><th class="p-4 text-center">Estado</th></tr></thead><tbody class="divide-y divide-gray-100">`;
 
-                let html = `<div class="grid-card overflow-hidden"><div class="bg-[#001935] p-4 border-l-8 border-[#019DF4]"><h2 class="text-white font-black uppercase italic text-sm">CAMPAÑA: ${camp}</h2></div>
-                    <table class="w-full text-[11px] text-left"><thead class="bg-slate-50 text-slate-500 uppercase italic font-black border-b"><tr>
-                        <th class="p-4">Supervisor</th><th class="p-4">Ejecutivo</th><th class="p-4">Errores Detectados</th><th class="p-4 text-center">Cant.</th><th class="p-4 text-center">Nota</th><th class="p-4 text-center">Estado</th>
-                    </tr></thead><tbody class="divide-y divide-gray-100">`;
-
-                listaOrdenada.forEach(x => {
+                Object.values(ag).sort((a,b) => (b.notas.reduce((s,v)=>s+v,0)/b.notas.length) - (a.notas.reduce((s,v)=>s+v,0)/a.notas.length)).forEach(x => {
                     const prom = (x.notas.reduce((s,v)=>s+v,0)/x.notas.length).toFixed(1);
-                    const erroresTexto = x.listaErrores.size > 0 ? Array.from(x.listaErrores).join(', ') : '<span class="text-gray-300 italic">Ninguno</span>';
-                    html += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold text-slate-500">${x.sup}</td><td class="p-4 uppercase font-black text-[#001935]">${x.eje}</td>
-                        <td class="p-4 text-red-600 font-bold max-w-[250px]">${erroresTexto}</td>
-                        <td class="p-4 text-center font-bold text-blue-600">${x.monitoreos}</td><td class="p-4 text-center font-black text-lg">${prom}%</td>
-                        <td class="p-4 text-center"><span class="px-3 py-1 rounded-full font-black ${x.totalCrit > 0?'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${x.totalCrit > 0?'CRITICO':'OK'}</span></td></tr>`;
+                    const errTxt = x.errSet.size ? Array.from(x.errSet).join(', ') : 'Ninguno';
+                    html += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold text-gray-500">${x.sup}</td><td class="p-4 font-black text-[#001935] uppercase">${x.eje}</td><td class="p-4 text-red-600 font-bold">${errTxt}</td><td class="p-4 text-center font-black text-lg">${prom}%</td><td class="p-4 text-center"><span class="px-3 py-1 rounded-full font-black ${x.totalCrit > 0?'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${x.totalCrit > 0?'CRITICO':'OK'}</span></td></tr>`;
                 });
                 container.innerHTML += html + `</tbody></table></div>`;
             });
@@ -215,8 +201,8 @@
         function renderPie(id, m) {
             if(charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4']}]},
-                options: { maintainAspectRatio: false, layout: { padding: 45 }, plugins: { datalabels: { anchor:'center', align:'center', color: '#fff', font: { size: 16, weight: 'bold' }, formatter: v => v + "%" }, legend: { display: true, position: 'top' } } }
+                type: 'pie', data: { labels: Object.keys(m), datasets: [{data: Object.values(m), backgroundColor: ['#001935','#019DF4'], borderWidth: 5, borderColor: '#fff'}]},
+                options: { maintainAspectRatio: false, plugins: { datalabels: { color: '#fff', font: { weight: 'black', size: 14 }, formatter: v => v + "%" }, legend: { position: 'top', labels: { font: { weight: 'bold' } } } } }
             });
         }
 
@@ -224,11 +210,11 @@
             if(charts[id]) charts[id].destroy();
             const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
             charts[id] = new Chart(document.getElementById(id), {
-                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 5}]},
+                type: 'bar', data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 8}]},
                 options: { 
-                    indexAxis: h?'y':'x', maintainAspectRatio: false, layout: { padding: { top: 30, bottom: 50, left: 30, right: 35 } },
-                    plugins: { legend: {display:false}, datalabels: { anchor: dentro?'center':'end', align: dentro?'center':'end', color: dentro?'#FFFFFF':'#333', font:{size: dentro?22:11, weight:'bold'} } }, 
-                    scales: { x: { grid:{display:false}, ticks: { autoSkip: false, maxRotation: 0, minRotation: 0, padding: 12, font: { size: 10, weight: 'bold' } } }, y: { grid:{display:false} } }
+                    indexAxis: h?'y':'x', maintainAspectRatio: false, 
+                    plugins: { legend: {display:false}, datalabels: { anchor: dentro?'center':'end', align: dentro?'center':'top', color: dentro?'#fff':'#444', font:{weight:'black', size:10} } },
+                    scales: { y: { grid:{display:false}, ticks:{font:{weight:'bold', size:9}} }, x: { grid:{display:false}, ticks:{font:{weight:'bold', size:9}} } }
                 }
             });
         }
