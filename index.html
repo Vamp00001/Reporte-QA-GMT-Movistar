@@ -219,15 +219,12 @@
                 legend: {display:false}, 
                 datalabels: { 
                     // POSICIÓN: 'end' coloca el número al final de la barra
-                    anchor: 'center', 
-    align: 'center', 
-    
-    // Color blanco para contraste
-    color: '#FFFFFF', 
-    
+                    anchor: h ? 'end' : 'center',
+    align: h ? 'right' : 'center',
+    color: h ? '#444' : '#FFFFFF',
     font: {
         weight: 'black',
-        size: 30 // Ajusta este número según qué tan grande lo desees
+        size: h ? 12 : 30 // Pequeño si es horizontal, Grande si es vertical
                     },
                     // ESPACIADO: Añade un offset para que no pegue a la barra
                     offset: 4 
@@ -248,6 +245,7 @@
     </script>
 </body>
 </html>
+
 
 
 
