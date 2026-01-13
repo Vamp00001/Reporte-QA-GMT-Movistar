@@ -40,6 +40,17 @@
     </nav>
 
     <div id="mainContent" class="max-w-[1800px] mx-auto p-6 hidden">
+        
+        <div class="grid-card p-6 mb-8 border-2 border-dashed border-[#019DF4] bg-blue-50">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-black text-[#001935] uppercase italic text-sm">Cargar Base de Datos (CSV)</h3>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Selecciona el archivo local para actualizar los tableros</p>
+                </div>
+                <input type="file" id="csvFileInput" accept=".csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-[#001935] file:text-white hover:file:bg-[#019DF4] cursor-pointer" />
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <div class="grid-card p-6 border-t-4 border-[#019DF4] text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Nota Pospago</p><p id="k-pos" class="text-4xl font-black text-[#001935]">0%</p></div>
             <div class="grid-card p-6 border-t-4 border-cyan-400 text-center"><p class="text-[10px] font-black text-gray-400 uppercase mb-1">Nota Prepago</p><p id="k-pre" class="text-4xl font-black text-[#001935]">0%</p></div>
@@ -71,7 +82,6 @@
         
         const USER_OK = "admin";
         const PASS_OK = "movi2026";
-        const CSV_URL = "https://raw.githubusercontent.com/vamp00001/Reporte-QA-GMT-Movistar/main/movi_2.csv";
 
         let gData = []; let charts = {};
         const catNames = ["Apertura","Profesionalismo","Tono","Lenguaje","Contactación","Habilidades","Resolución","Empatía","Apreciación","Información","Procedimientos","Sistemas","Cierre"];
@@ -79,15 +89,28 @@
         window.onload = () => {
             if(localStorage.getItem('gmt_auth') === 'true') {
                 document.getElementById('loginOverlay').style.display = 'none';
-                cargarDatosAutomaticos();
+                document.getElementById('mainContent').classList.remove('hidden');
             }
         };
+
+        // LÓGICA DE CARGA DE ARCHIVO LOCAL
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                procesarCSV(csvText);
+            };
+            reader.readAsText(file);
+        });
 
         function validarAcceso() {
             if(document.getElementById('userInput').value === USER_OK && document.getElementById('passInput').value === PASS_OK) {
                 localStorage.setItem('gmt_auth', 'true');
                 document.getElementById('loginOverlay').style.display = 'none';
-                cargarDatosAutomaticos();
+                document.getElementById('mainContent').classList.remove('hidden');
             } else {
                 document.getElementById('loginError').classList.remove('hidden');
             }
@@ -98,29 +121,23 @@
             location.reload();
         }
 
-        function cargarDatosAutomaticos() {
-            fetch(CSV_URL)
-                .then(res => res.text())
-                .then(csvText => {
-                    const lines = csvText.split(/\r?\n/).filter(l => l.includes(','));
-                    gData = lines.slice(1).map(line => {
-                        const p = line.split(',').map(c => c.trim().replace(/"/g, ''));
-                        let errArray = [];
-                        for(let i=6; i<=18; i++) {
-                            let val = (p[i] || "").toUpperCase();
-                            errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
-                        }
-                        return {
-                            mes: p[0], nota: parseFloat(p[1]) || 0, eje: p[2], sup: p[3], 
-                            camp: p[4], sem: p[5], crit: errArray.some(v => v === 1) ? 1 : 0, 
-                            errs: errArray, ana: p[19] || "S/A"
-                        };
-                    });
-                    setup(); 
-                    update('ALL', 'ALL');
-                    document.getElementById('mainContent').classList.remove('hidden');
-                })
-                .catch(() => alert("Error al conectar con GitHub."));
+        function procesarCSV(csvText) {
+            const lines = csvText.split(/\r?\n/).filter(l => l.includes(','));
+            gData = lines.slice(1).map(line => {
+                const p = line.split(',').map(c => c.trim().replace(/"/g, ''));
+                let errArray = [];
+                for(let i=6; i<=18; i++) {
+                    let val = (p[i] || "").toUpperCase();
+                    errArray.push(val.includes('ERROR') || val.includes('CRITICO') ? 1 : 0);
+                }
+                return {
+                    mes: p[0], nota: parseFloat(p[1]) || 0, eje: p[2], sup: p[3], 
+                    camp: p[4], sem: p[5], crit: errArray.some(v => v === 1) ? 1 : 0, 
+                    errs: errArray, ana: p[19] || "S/A"
+                };
+            });
+            setup(); 
+            update('ALL', 'ALL');
         }
 
         function setup() {
@@ -150,29 +167,20 @@
             document.getElementById('k-cri').innerText = d.reduce((s,v)=>s+v.crit,0);
 
             renderPie('chPie', {'POSPAGO': avg(pos), 'PREPAGO': avg(pre)});
-            
-            // Analistas
             const anas = {}; d.forEach(x => anas[x.ana] = (anas[x.ana] || 0) + 1);
             renderBar('chAna', anas, '#019DF4', false, 15, true); 
-
-            // Críticos por Supervisor (Nuevo)
             const supCri = {}; d.filter(x => x.crit > 0).forEach(x => supCri[x.sup] = (supCri[x.sup] || 0) + 1);
             renderBar('chSupCri', supCri, '#991B1B', true, 10);
-
-            // Errores por Categoría
             const eCounts = new Array(13).fill(0);
             d.forEach(x => x.errs.forEach((v,i) => eCounts[i]+=v));
             const eMap = {}; catNames.forEach((n,i) => eMap[n] = eCounts[i]);
             renderBar('chErr', eMap, '#EF4444', false);
-
-            // Top Ejecutivos Críticos
             const ejesCri = {}; d.filter(x => x.crit>0).forEach(x => ejesCri[x.eje] = (ejesCri[x.eje] || 0) + 1);
             renderBar('chTop', ejesCri, '#B91C1C', true, 10);
-
-            // Tablas
             renderTables(d);
         }
 
+        // ... El resto de tus funciones renderTables, renderPie y renderBar se mantienen igual que tu original ...
         function renderTables(d) {
             const container = document.getElementById('tablesContainer');
             container.innerHTML = ''; 
@@ -207,45 +215,35 @@
         }
 
         function renderBar(id, m, c, h, lim=20, dentro=false) {
-    if(charts[id]) charts[id].destroy();
-    const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
-    charts[id] = new Chart(document.getElementById(id), {
-        type: 'bar', 
-        data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 8}]},
-        options: { 
-            indexAxis: h?'y':'x', 
-            maintainAspectRatio: false, 
-            plugins: { 
-                legend: {display:false}, 
-                datalabels: { 
-                    // POSICIÓN: 'end' coloca el número al final de la barra
-                    anchor: h ? 'end' : 'center',
-    align: h ? 'right' : 'center',
-    color: h ? '#444' : '#FFFFFF',
-    font: {
-        weight: 'black',
-        size: h ? 12 : 30 // Pequeño si es horizontal, Grande si es vertical
+            if(charts[id]) charts[id].destroy();
+            const keys = Object.keys(m).sort((a,b)=>m[b]-m[a]).slice(0, lim);
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'bar', 
+                data: { labels: keys, datasets: [{data: keys.map(k=>m[k]), backgroundColor: c, borderRadius: 8}]},
+                options: { 
+                    indexAxis: h?'y':'x', 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: {display:false}, 
+                        datalabels: { 
+                            anchor: h ? 'end' : 'center',
+                            align: h ? 'right' : 'center',
+                            color: h ? '#444' : '#FFFFFF',
+                            font: { weight: 'black', size: h ? 12 : 30 },
+                            offset: 4 
+                        } 
                     },
-                    // ESPACIADO: Añade un offset para que no pegue a la barra
-                    offset: 4 
-                } 
-            },
-            scales: { 
-                y: { grid:{display:false}, ticks:{font:{weight:'bold', size:11}} }, 
-                x: { 
-                    grid:{display:false}, 
-                    // IMPORTANTE: Añade 'suggestedMax' para dar aire al final de la gráfica
-                    suggestedMax: Math.max(...Object.values(m)) * 1.2,
-                    ticks:{font:{weight:'bold', size:11}} 
-                } 
-            }
+                    scales: { 
+                        y: { grid:{display:false}, ticks:{font:{weight:'bold', size:11}} }, 
+                        x: { 
+                            grid:{display:false}, 
+                            suggestedMax: Math.max(...Object.values(m)) * 1.2,
+                            ticks:{font:{weight:'bold', size:11}} 
+                        } 
+                    }
+                }
+            });
         }
-    });
-}
     </script>
 </body>
 </html>
-
-
-
-
